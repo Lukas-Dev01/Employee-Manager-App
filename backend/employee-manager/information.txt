@@ -1,0 +1,33 @@
+To make Java Spring Boot launch you have to RUN terminal in admin and input: "net start MySQL95"
+for JAVA SPRING BOOT to launch.
+
+WARNING THIS DELETES THE WHOLE DATABASE !!!
+
+Stop your Spring Boot app completely.
+Make sure DB is clean again:
+TRUNCATE TABLE employee;
+ALTER TABLE employee AUTO_INCREMENT = 1;
+UPDATE employee_seq SET next_val = 1;
+
+Verify:
+SELECT * FROM employee;
+SELECT * FROM employee_seq;
+SHOW TABLE STATUS LIKE 'employee';
+
+Start Spring Boot again.
+
+On POSTMAN if you initiated POST: "http://localhost:8080/employee/add" and it adds employees with id not in order then
+use these commands in your local database, you have to be logged into ur own MYSQL.
+
+-- 1. Make sure you are using the correct database
+USE employeemanager;
+
+-- 2. Clear the employee data
+TRUNCATE TABLE employee;
+
+-- 3. Reset the sequence counter to 1
+-- (Use the correct column name if it's not 'next_val')
+UPDATE employee_seq SET next_val = 1;
+
+-- 4. Verify the sequence has been reset
+SELECT * FROM employee_seq;

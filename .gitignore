@@ -1,0 +1,125 @@
+# Repository-level .gitignore for employee-manager-app
+# Covers backend (Maven/Java), frontend (Angular/Node), OS files and common IDEs
+
+# ==========================
+# Operating system files
+# ==========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ==========================
+# Node / Angular
+# ==========================
+# Ignore node modules and build output (applies anywhere in repo)
+node_modules/
+# Angular / TypeScript build outputs
+dist/
+out-tsc/
+.angular/
+.angular/cache
+# TypeScript incremental build info
+*.tsbuildinfo
+# Test coverage and reports
+coverage/
+lcov-report/
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+# Sass/cache, jspm
+.sass-cache/
+jspm_packages/
+
+# Environment / secrets (keep example files like .env.example)
+.env
+.env.*.local
+.env.local
+
+# ==========================
+# Java / Maven
+# ==========================
+# Maven / Java build output
+target/
+# Java artifacts
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+# Maven generated metadata
+dependency-reduced-pom.xml
+release.properties
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+
+# Don't ignore the Maven wrapper itself (.mvn and mvnw/mvnw.cmd should be committed)
+
+# ==========================
+# IDEs / Editors
+# ==========================
+# Visual Studio Code
+.vscode/
+# IntelliJ / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+# Eclipse
+.classpath
+.project
+.settings/
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+# VS / Visual Studio (if any)
+*.suo
+*.user
+*.userosscache
+*.sln
+*.vcxproj*
+
+# ==========================
+# Build / test / runtime / logs
+# ==========================
+logs/
+*.log
+*.log.*
+test-results/
+build/
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.pid
+hs_err_pid*
+
+# ==========================
+# Security / credentials
+# ==========================
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+credentials.json
+google-services.json
+firebase-debug.log
+
+# ==========================
+# Misc
+# ==========================
+*.orig
+*.rej
+*.cache
+*.class
+# TypeScript / Angular artifacts
+out/
+# Keep lockfiles in repo (do NOT ignore): package-lock.json, yarn.lock, pnpm-lock.yaml
+
+# End of file
