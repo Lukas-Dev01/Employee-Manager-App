@@ -37,7 +37,7 @@
     <!-- Employee Cards -->
     <div class="container">
       <div class="row">
-        <div *ngFor="let employee of employees" class="col-md-6 col-xl-3">
+        <div *ngFor="let employee of employees" class="col-md-6 col-xl-4">
           <div class="card m-b-30">
             <div class="card-body row">
               <div class="col-6">
@@ -178,7 +178,6 @@
                 <img *ngIf="editEmployee.imageUrl" [src]="editEmployee.imageUrl" class="img-thumbnail mt-2" style="max-height:120px;">
               </div>
               <div class="modal-footer">
-                <button type="button" id="" data-bs-dismiss="modal" class="btn btn-secondary">Close</button>
                 <button type="submit" data-bs-dismiss="modal" class="btn btn-primary" >Save changes</button>
               </div>
            </form>

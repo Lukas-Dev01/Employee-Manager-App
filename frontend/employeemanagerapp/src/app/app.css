@@ -1,0 +1,75 @@
+/* Make grid columns stretch so cards have equal height */
+.row > [class*="col-"] {
+	display: initial;
+	align-items: stretch;
+}
+
+/* Make card fill the column and layout its internal sections vertically */
+.card.m-b-30 {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+}
+
+/* Ensure the top card body aligns content nicely */
+.card.m-b-30 .card-body.row {
+	display: -webkit-box;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+/* Consistent profile image sizing and cropping */
+.card.m-b-30 .card-body .col-6 img,
+.card.m-b-30 img.img-fluid.rounded-circle.w-60 {
+	width: 100px;
+	height: 100px;
+	object-fit: cover;
+}
+
+/* Utility class used in template (w-60) */
+.w-60 {
+	width: 60%;
+	max-width: 100px;
+}
+
+/* Keep buttons group aligned to the bottom of the card */
+.card.m-b-30 .card-body + .list-group + .card-body {
+	margin-top: auto;
+}
+
+/* Small visual tweaks */
+.card.m-b-30 .card-title h5 {
+	margin-bottom: 0.25rem;
+}
+
+.card.m-b-30 .card-title {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.15rem;
+}
+
+.card.m-b-30 .card-title h5 {
+	font-size: 1.15rem;
+	font-weight: 600;
+	color: #222;
+	margin-bottom: 0.1rem;
+	letter-spacing: 0.01em;
+}
+
+.card.m-b-30 .card-title p {
+	font-size: 0.95rem;
+	color: #6c757d;
+	margin: 0;
+	font-weight: 400;
+}
+
+.card.m-b-30 .list-group-item a {
+	word-break: break-all;
+}
+
+/* Adds a space between navbar and employee cards grid */
+.navbar + .container {
+	margin-top: 2rem;
+}
+

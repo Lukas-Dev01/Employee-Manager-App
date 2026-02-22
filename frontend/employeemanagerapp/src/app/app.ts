@@ -164,7 +164,7 @@ export class App {
             this.editEmployee.imageUrl = e.target.result;
           }
         } catch (err) {
-          // noop
+          
         }
       };
       reader.readAsDataURL(file);
