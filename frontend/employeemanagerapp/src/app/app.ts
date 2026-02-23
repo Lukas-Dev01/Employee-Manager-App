@@ -25,6 +25,7 @@ export class App {
   public deleteEmployee: Employee = {} as Employee;
   public selectedImageUrl: string = '';
   public selectedImageName: string = '';
+  public addEmployeeImageUrl: string = '';
   private allEmployees: Employee[] = [];
 
   constructor(private employeeService: EmployeeService) {
@@ -60,7 +61,7 @@ export class App {
     this.employeesSubject.next(filtered);
   }
 
-  public onOpenModal(employee: Employee, mode: string): void {
+  public onOpenModal(employee: Employee | null, mode: string): void {
     const container = document.getElementById('main-container');
     if (!container) return;
     const button = document.createElement('button');
@@ -68,15 +69,27 @@ export class App {
     button.style.display = 'none';
     button.setAttribute('data-bs-toggle', 'modal');
     if (mode === 'add') {
+      // clear any previously selected add image when opening add modal
+      this.addEmployeeImageUrl = '';
+      // clear any file input value if present
+      try {
+        const fileInput = document.getElementById('imageFile') as HTMLInputElement | null;
+        if (fileInput) fileInput.value = '';
+      } catch (err) {}
       button.setAttribute('data-bs-target', '#addEmployeeModal');
     }
     if (mode === 'edit') {
       // copy the employee into editEmployee to allow two-way binding safely
-      this.editEmployee = { ...employee } as Employee;
+      if (employee) this.editEmployee = { ...employee } as Employee;
+      // clear edit file input so previous selection doesn't persist
+      try {
+        const editFileInput = document.getElementById('editImageFile') as HTMLInputElement | null;
+        if (editFileInput) editFileInput.value = '';
+      } catch (err) {}
       button.setAttribute('data-bs-target', '#updateEmployeeModal');
     }
     if (mode === 'delete') {
-      this.deleteEmployee = { ...employee } as Employee;
+      if (employee) this.deleteEmployee = { ...employee } as Employee;
       button.setAttribute('data-bs-target', '#deleteEmployeeModal');
     }
     container.appendChild(button);
@@ -84,6 +97,11 @@ export class App {
   }
 
   public onAddEmployee(employeeData: any): void {
+    // Ensure the selected image preview is attached to the payload
+    if (this.addEmployeeImageUrl) {
+      employeeData = { ...employeeData, imageUrl: this.addEmployeeImageUrl };
+    }
+
     this.employeeService.addEmployee(employeeData).subscribe({
       next: (newEmployee) => {
         this.allEmployees.push(newEmployee);
@@ -94,6 +112,11 @@ export class App {
   }
 
   public onUpdateEmployee(employeeData: any): void {
+    // Prefer the bound editEmployee.imageUrl if available (ensures file-picked image is used)
+    if (this.editEmployee && this.editEmployee.imageUrl) {
+      employeeData = { ...employeeData, imageUrl: this.editEmployee.imageUrl };
+    }
+
     this.employeeService.updateEmployee(employeeData).subscribe({
       next: (updatedEmployee) => {
         const index = this.allEmployees.findIndex(e => e.id === updatedEmployee.id);
@@ -146,28 +169,55 @@ export class App {
     }
   }
 
-  public onImageFileChange(event: Event, form: any): void {
+  public onImageFileChange(event: Event, formOrType: any): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        // Set the imageUrl field in the form to the base64 data URL
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const dataUrl = e.target.result as string;
+      // If caller provided a string type marker ('add' or 'edit'), use component props
+      if (typeof formOrType === 'string') {
+        if (formOrType === 'add') {
+          this.addEmployeeImageUrl = dataUrl;
+        } else if (formOrType === 'edit') {
+          this.editEmployee.imageUrl = dataUrl;
+        }
+        return;
+      }
+
+      // Otherwise, attempt to patch the provided ngForm/reactive form object
+      const form = formOrType;
+      try {
         if (form && form.controls && form.controls.imageUrl) {
-          form.controls.imageUrl.setValue(e.target.result);
+          // reactive form style
+          form.controls.imageUrl.setValue(dataUrl);
         } else if (form && form.form && form.form.patchValue) {
-          form.form.patchValue({ imageUrl: e.target.result });
+          // nested form object
+          form.form.patchValue({ imageUrl: dataUrl });
+        } else if (form && form.value && form.value.id) {
+          // looks like edit form - keep editEmployee in sync
+          this.editEmployee.imageUrl = dataUrl;
+        } else {
+          // fallback: set add preview
+          this.addEmployeeImageUrl = dataUrl;
         }
-        // If the form looks like the EDIT form (contains an id) keep editEmployee in sync
-        try {
-          if (form && form.value && form.value.id) {
-            this.editEmployee.imageUrl = e.target.result;
-          }
-        } catch (err) {
-          
-        }
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        // fallback: set add preview
+        this.addEmployeeImageUrl = dataUrl;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Called when the user types/pastes an Image URL into the input.
+  // Keeps the preview in sync for both add and edit forms.
+  public onImageUrlInputChange(value: string, formType: 'add' | 'edit'): void {
+    if (formType === 'add') {
+      this.addEmployeeImageUrl = value;
+    } else {
+      if (!this.editEmployee) this.editEmployee = {} as Employee;
+      this.editEmployee.imageUrl = value;
     }
   }
 }

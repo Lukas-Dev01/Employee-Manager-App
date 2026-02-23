@@ -17,7 +17,7 @@
       <div class="collapse navbar-collapse" id="navbarColor02">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+            <a class="nav-link" href="#" (click)="onOpenModal(null, 'add')">
               Add Employee
             </a>
           </li>
@@ -41,7 +41,7 @@
           <div class="card m-b-30">
             <div class="card-body row">
               <div class="col-6">
-                <a href="javascript:void(0)" (click)="onViewImage(employee.imageUrl, employee.name)"><img src="{{employee.imageUrl}}" alt="" class="img-fluid rounded-circle w-60" style="cursor: pointer;"></a>
+                <a href="javascript:void(0)" (click)="onViewImage(employee.imageUrl, employee.name)"><img src="{{employee.imageUrl}}" alt="" class="img-fluid rounded-circle w-60 profile-img" style="cursor: pointer;"></a>
               </div>
               <div class="col-6 card-title align-self-center mb-0">
                 <h5>{{employee?.name}}</h5>
@@ -98,7 +98,7 @@
          <!-- Removed close X button from Add Employee modal -->
        </div>
        <div class="modal-body">
-        <form #addForm="ngForm" (ngSubmit)="onAddEmployee(addForm.value)">
+        <form #addForm="ngForm" (ngSubmit)="onAddEmployee(addForm.value); addForm.resetForm(); addEmployeeImageUrl = ''">
           <div class="form-group">
              <label for="name">Name</label>
              <input type="text" ngModel name="name" class="form-control" id="name" placeholder="Name" required>
@@ -117,15 +117,16 @@
           </div>
            <div class="form-group">
              <label for="imageUrl">Image URL (or paste a link)</label>
-             <input type="text" ngModel name="imageUrl" class="form-control" id="imageUrl" placeholder="Image URL">
+             <input type="text" [(ngModel)]="addEmployeeImageUrl" (input)="onImageUrlInputChange($event.target.value, 'add')" name="imageUrl" class="form-control" id="imageUrl" placeholder="Image URL">
              <small class="form-text text-muted">Or choose a local file below — the URL field will be populated automatically.</small>
            </div>
            <div class="form-group mt-2">
              <label for="imageFile">Browse local image</label>
-             <!-- file input no longer binds to imageUrl directly; on change we patch the form.imageUrl control -->
-             <input type="file" accept="image/*" class="form-control" id="imageFile" (change)="onImageFileChange($event, addForm)">
-             <!-- Preview selected image in Add modal -->
-             <img *ngIf="addForm.value?.imageUrl" [src]="addForm.value.imageUrl" class="img-thumbnail mt-2" style="max-height:120px;">
+             <div class="d-flex align-items-center gap-2">
+               <input type="file" accept="image/*" class="form-control" id="imageFile" (change)="onImageFileChange($event, 'add')">
+               <!-- Preview selected image in Add modal -->
+               <img *ngIf="addEmployeeImageUrl" [src]="addEmployeeImageUrl" class="img-thumbnail mt-2 preview-default">
+             </div>
            </div>
           <div class="modal-footer">
              <button type="button" id="add-employee-form" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -149,7 +150,7 @@
             <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           </div>
         <div class="modal-body">
-            <form #editForm="ngForm" (ngSubmit)="onUpdateEmployee(editForm.value)">
+            <form #editForm="ngForm" (ngSubmit)="onUpdateEmployee(editForm.value); editForm.resetForm()">
               <div class="form-group">
                  <label for="name">Name</label>
                 <input type="text" [(ngModel)]="editEmployee.name" name="name" class="form-control" id="name" aria-describedby="emailHelp" placeholder="Name">
@@ -174,8 +175,10 @@
               </div>
               <div class="form-group mt-2">
                 <label for="editImageFile">Browse local image (Edit)</label>
-                <input type="file" accept="image/*" class="form-control" id="editImageFile" (change)="onImageFileChange($event, editForm)">
-                <img *ngIf="editEmployee.imageUrl" [src]="editEmployee.imageUrl" class="img-thumbnail mt-2" style="max-height:120px;">
+                <div class="d-flex align-items-center gap-2">
+                  <input type="file" accept="image/*" class="form-control" id="editImageFile" (change)="onImageFileChange($event, 'edit')">
+                  <img *ngIf="editEmployee.imageUrl" [src]="editEmployee.imageUrl" class="img-thumbnail mt-2 preview-default">
+                </div>
               </div>
               <div class="modal-footer">
                 <button type="submit" data-bs-dismiss="modal" class="btn btn-primary" >Save changes</button>

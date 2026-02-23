@@ -2,6 +2,7 @@ package com.lukasdev01.employeemanager.model;
 
 import java.io.Serializable;
 import jakarta.persistence.Column;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,6 +20,8 @@ public class Employee implements Serializable {
     private String email;
     private String jobTitle;
     private String phone;
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String imageUrl;
     @Column(nullable = false, updatable = false)
     private String employeeCode;
