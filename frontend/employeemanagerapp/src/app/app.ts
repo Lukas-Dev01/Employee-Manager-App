@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { Employee } from './employee';
+import { Employee, EmployeeWithBirthday, EmployeeWithAnniversary, EmployeeWithContractWarning } from './employee';
 import { EmployeeService } from './employee.service';
 import { Observable, BehaviorSubject } from 'rxjs';
 
@@ -26,7 +26,16 @@ export class App {
   public selectedImageUrl: string = '';
   public selectedImageName: string = '';
   public addEmployeeImageUrl: string = '';
+  public selectedAddContractType: string = '';
   private allEmployees: Employee[] = [];
+
+  // New properties for sorting and statistics
+  public sortBy: string = 'name';
+  public sortDirection: 'asc' | 'desc' = 'asc';
+  public statistics: any = {};
+  public upcomingBirthdays: EmployeeWithBirthday[] = [];
+  public upcomingAnniversaries: EmployeeWithAnniversary[] = [];
+  public upcomingContractEndings: EmployeeWithContractWarning[] = [];
 
   constructor(private employeeService: EmployeeService) {
     // Initialize the observable AFTER the service is injected
@@ -34,7 +43,9 @@ export class App {
     this.employeeService.getEmployees().subscribe({
       next: (res) => {
         this.allEmployees = res;
-        this.employeesSubject.next(res);
+        this.updateStatistics();
+        this.updateUpcomingEvents();
+        this.applySorting();
       },
       error: (err) => console.error(err)
     });
@@ -71,6 +82,7 @@ export class App {
     if (mode === 'add') {
       // clear any previously selected add image when opening add modal
       this.addEmployeeImageUrl = '';
+      this.selectedAddContractType = '';
       // clear any file input value if present
       try {
         const fileInput = document.getElementById('imageFile') as HTMLInputElement | null;
@@ -105,7 +117,7 @@ export class App {
     this.employeeService.addEmployee(employeeData).subscribe({
       next: (newEmployee) => {
         this.allEmployees.push(newEmployee);
-        this.employeesSubject.next([...this.allEmployees]);
+        this.updateAll();
       },
       error: (err) => console.error(err)
     });
@@ -122,7 +134,7 @@ export class App {
         const index = this.allEmployees.findIndex(e => e.id === updatedEmployee.id);
         if (index !== -1) {
           this.allEmployees[index] = updatedEmployee;
-          this.employeesSubject.next([...this.allEmployees]);
+          this.updateAll();
         }
       },
       error: (err) => console.error(err)
@@ -134,7 +146,7 @@ export class App {
     this.employeeService.deleteEmployee(id).subscribe({
       next: () => {
         this.allEmployees = this.allEmployees.filter(e => e.id !== id);
-        this.employeesSubject.next([...this.allEmployees]);
+        this.updateAll();
       },
       error: (err) => console.error(err)
     });
@@ -219,5 +231,193 @@ export class App {
       if (!this.editEmployee) this.editEmployee = {} as Employee;
       this.editEmployee.imageUrl = value;
     }
+  }
+
+  // Sorting functionality
+  public onSortChange(sortBy: string): void {
+    if (this.sortBy === sortBy) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = sortBy;
+      this.sortDirection = 'asc';
+    }
+    this.applySorting();
+  }
+
+  private applySorting(): void {
+    const sorted = [...this.allEmployees].sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      switch (this.sortBy) {
+        case 'name':
+          aValue = a.name?.toLowerCase() || '';
+          bValue = b.name?.toLowerCase() || '';
+          break;
+        case 'jobTitle':
+          aValue = a.jobTitle?.toLowerCase() || '';
+          bValue = b.jobTitle?.toLowerCase() || '';
+          break;
+        case 'hireDate':
+          aValue = a.hireDate ? new Date(a.hireDate).getTime() : 0;
+          bValue = b.hireDate ? new Date(b.hireDate).getTime() : 0;
+          break;
+        case 'status':
+          aValue = a.status || '';
+          bValue = b.status || '';
+          break;
+        default:
+          aValue = a.name?.toLowerCase() || '';
+          bValue = b.name?.toLowerCase() || '';
+      }
+
+      if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    this.employeesSubject.next(sorted);
+  }
+
+  // Statistics calculation
+  private updateStatistics(): void {
+    const total = this.allEmployees.length;
+    const active = this.allEmployees.filter(e => e.status === 'ACTIVE').length;
+    const inactive = this.allEmployees.filter(e => e.status === 'INACTIVE').length;
+
+    this.statistics = {
+      total,
+      active,
+      inactive,
+      activePercentage: total > 0 ? Math.round((active / total) * 100) : 0
+    };
+  }
+
+  // Upcoming birthdays and anniversaries
+  private updateUpcomingEvents(): void {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentDay = today.getDate();
+
+    // Get upcoming birthdays (next 30 days)
+    this.upcomingBirthdays = this.allEmployees
+      .filter(employee => employee.birthday)
+      .map(employee => ({
+        ...employee,
+        daysUntilBirthday: this.getDaysUntilBirthday(employee.birthday!)
+      }))
+      .filter(employee => employee.daysUntilBirthday <= 30 && employee.daysUntilBirthday >= 0)
+      .sort((a, b) => a.daysUntilBirthday - b.daysUntilBirthday)
+      .slice(0, 5);
+
+    // Get upcoming anniversaries (next 30 days)
+    this.upcomingAnniversaries = this.allEmployees
+      .filter(employee => employee.hireDate)
+      .map(employee => ({
+        ...employee,
+        daysUntilAnniversary: this.getDaysUntilAnniversary(employee.hireDate!),
+        yearsOfService: this.getYearsOfService(employee.hireDate!)
+      }))
+      .filter(employee => employee.daysUntilAnniversary <= 30 && employee.daysUntilAnniversary >= 0)
+      .sort((a, b) => a.daysUntilAnniversary - b.daysUntilAnniversary)
+      .slice(0, 5);
+
+    // Get upcoming contract endings (next 90 days)
+    this.upcomingContractEndings = this.allEmployees
+      .filter(employee => employee.contractEndDate)
+      .map(employee => {
+        const daysUntil = this.getDaysUntilDate(employee.contractEndDate!);
+        let contractStatus: 'active' | 'ending-soon' | 'expired' | 'not-applicable' = 'active';
+        
+        if (daysUntil < 0) {
+          contractStatus = 'expired';
+        } else if (daysUntil <= 30) {
+          contractStatus = 'ending-soon';
+        }
+
+        return {
+          ...employee,
+          daysUntilContractEnd: daysUntil,
+          contractStatus
+        };
+      })
+      .filter(employee => employee.daysUntilContractEnd <= 90 && employee.daysUntilContractEnd >= -7)
+      .sort((a, b) => {
+        // Show expired contracts first, then ending soon
+        if (a.contractStatus === 'expired' && b.contractStatus !== 'expired') return -1;
+        if (a.contractStatus !== 'expired' && b.contractStatus === 'expired') return 1;
+        return a.daysUntilContractEnd - b.daysUntilContractEnd;
+      })
+      .slice(0, 5);
+  }
+
+  private getDaysUntilBirthday(birthdayStr: string): number {
+    const today = new Date();
+    const birthday = new Date(birthdayStr);
+    const thisYearBirthday = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
+
+    if (thisYearBirthday < today) {
+      thisYearBirthday.setFullYear(today.getFullYear() + 1);
+    }
+
+    const diffTime = thisYearBirthday.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  private getDaysUntilAnniversary(hireDateStr: string): number {
+    const today = new Date();
+    const hireDate = new Date(hireDateStr);
+    const thisYearAnniversary = new Date(today.getFullYear(), hireDate.getMonth(), hireDate.getDate());
+
+    if (thisYearAnniversary < today) {
+      thisYearAnniversary.setFullYear(today.getFullYear() + 1);
+    }
+
+    const diffTime = thisYearAnniversary.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  private getYearsOfService(hireDateStr: string): number {
+    const hireDate = new Date(hireDateStr);
+    const today = new Date();
+    return today.getFullYear() - hireDate.getFullYear();
+  }
+
+  public getDaysUntilDate(dateStr: string | undefined): number {
+    if (!dateStr) return 999;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0, 0, 0, 0);
+    
+    const diffTime = targetDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  public getContractHeaderClass(): string {
+    const expired = this.upcomingContractEndings.some(e => e.contractStatus === 'expired');
+    const endingSoon = this.upcomingContractEndings.some(e => e.contractStatus === 'ending-soon');
+    
+    if (expired) {
+      return 'bg-danger text-white';
+    } else if (endingSoon) {
+      return 'bg-warning';
+    }
+    return 'bg-info text-white';
+  }
+
+  // Update statistics and events when employees change
+  private updateAll(): void {
+    this.updateStatistics();
+    this.updateUpcomingEvents();
+    this.applySorting();
+  }
+
+  public onContractTypeChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.selectedAddContractType = selectElement.value;
+  }
+
+  public onExportToCSV(): void {
+    this.employeeService.exportEmployeesToCSV(this.allEmployees);
   }
 }

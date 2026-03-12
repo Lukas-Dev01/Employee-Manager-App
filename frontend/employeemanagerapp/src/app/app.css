@@ -139,7 +139,7 @@
 	color: #212529;
 	border: 1px solid rgba(0,0,0,0.06);
 	transition: transform .15s ease, box-shadow .15s ease;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+	box-shadow: 0 14px 32px rgba(0,0,0,0.12);
 }
 .card.m-b-30 .card-body,
 .card.m-b-30 .list-group-item {

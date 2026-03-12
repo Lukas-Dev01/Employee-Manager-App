@@ -33,6 +33,59 @@ export class EmployeeService {
     return this.http.delete<void>(`${this.apiServerUrl}/employee/delete/${id}`);
   }
 
+  public exportEmployeesToCSV(employees: Employee[]): void {
+    if (!employees || employees.length === 0) {
+      alert('No employees to export');
+      return;
+    }
+
+    // Define CSV headers
+    const headers = ['ID', 'Name', 'Email', 'Job Title', 'Phone', 'Status', 'Birthday', 'Hire Date', 'Contract Type', 'Contract Start Date', 'Contract End Date'];
+    
+    // Convert employees to CSV rows
+    const rows = employees.map(emp => [
+      emp.id?.toString() || '',
+      emp.name || '',
+      emp.email || '',
+      emp.jobTitle || '',
+      emp.phone || '',
+      emp.status || '',
+      emp.birthday || '',
+      emp.hireDate || '',
+      emp.contractType || '',
+      emp.contractStartDate || '',
+      emp.contractEndDate || ''
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => this.escapeCsvValue(cell as string)).join(','))
+    ].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `employees_${new Date().getTime()}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  private escapeCsvValue(value: string): string {
+    if (!value) return '';
+    // Escape quotes and wrap in quotes if needed
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
+  }
+
   public onOpenModal(employee: Employee | null, mode: string): void {
     const button = document.createElement('button');
     button.type = 'button';
