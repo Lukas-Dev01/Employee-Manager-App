@@ -85,7 +85,7 @@
                 <div *ngFor="let employee of upcomingBirthdays" class="list-group-item px-0">
                   <div class="d-flex justify-content-between align-items-center">
                     <div>
-                      <strong>{{employee.name}}</strong>
+                      <strong class="clickable-employee-name" (click)="scrollToAndHighlightEmployee(employee.id)">{{employee.name}}</strong>
                       <br><small class="text-muted">{{employee.daysUntilBirthday}} days</small>
                     </div>
                     <span class="badge bg-info">{{employee.birthday | date:'MMM dd'}}</span>
@@ -105,7 +105,7 @@
                 <div *ngFor="let employee of upcomingAnniversaries" class="list-group-item px-0">
                   <div class="d-flex justify-content-between align-items-center">
                     <div>
-                      <strong>{{employee.name}}</strong>
+                      <strong class="clickable-employee-name" (click)="scrollToAndHighlightEmployee(employee.id)">{{employee.name}}</strong>
                       <br><small class="text-muted">{{employee.daysUntilAnniversary}} days • {{employee.yearsOfService}} years</small>
                     </div>
                     <span class="badge bg-success">{{employee.hireDate | date:'MMM dd'}}</span>
@@ -127,7 +127,7 @@
                 <div *ngFor="let employee of upcomingContractEndings" class="list-group-item px-0">
                   <div class="d-flex justify-content-between align-items-center">
                     <div>
-                      <strong>{{employee.name}}</strong>
+                      <strong class="clickable-employee-name" (click)="scrollToAndHighlightEmployee(employee.id)">{{employee.name}}</strong>
                       <br><small class="text-muted">{{employee.contractType || 'Contract'}} • Ends {{employee.contractEndDate | date:'MMM dd, yyyy'}}</small>
                     </div>
                     <div>
@@ -135,6 +135,7 @@
                         [ngClass]="{'bg-danger': employee.contractStatus === 'expired', 'bg-warning': employee.contractStatus === 'ending-soon', 'bg-info': employee.contractStatus === 'active'}">
                         {{employee.contractStatus === 'expired' ? 'EXPIRED' : (employee.contractStatus === 'ending-soon' ? 'ENDING SOON' : 'ACTIVE')}}
                       </span>
+                      &nbsp;
                       <span class="badge bg-secondary">{{employee.daysUntilContractEnd > 0 ? employee.daysUntilContractEnd + ' days' : (employee.daysUntilContractEnd === 0 ? 'Today' : 'Expired')}}</span>
                     </div>
                   </div>
@@ -150,7 +151,7 @@
     <div class="container">
       <div class="row">
         <div *ngFor="let employee of employees" class="col-md-6 col-xl-4">
-          <div class="card m-b-30">
+          <div class="card m-b-30" [id]="'employee-card-' + employee.id" [ngClass]="{'highlight-blink': selectedEmployeeId === employee.id}">
             <div class="card-body row">
               <div class="col-6">
                 <a href="javascript:void(0)" (click)="onViewImage(employee.imageUrl, employee.name)"><img src="{{employee.imageUrl}}" alt="" class="img-fluid rounded-circle w-60 profile-img" style="cursor: pointer;"></a>
@@ -170,12 +171,25 @@
               </li>
               <li class="list-group-item"> <i class="fa fa-phone float-right"></i>Phone: {{employee?.phone}}
               </li>
+              <li class="list-group-item" *ngIf="employee?.birthday"> <i class="fa fa-birthday-cake float-right"></i>Birthday: {{employee.birthday | date:'MMM dd, yyyy'}}
+              </li>
+              <li class="list-group-item" *ngIf="employee?.hireDate"> <i class="fa fa-calendar float-right"></i>Hire Date: {{employee.hireDate | date:'MMM dd, yyyy'}}
+              </li>
               <li class="list-group-item" *ngIf="employee?.contractType || employee?.contractEndDate"> 
-                <i class="fa fa-file-contract float-right"></i>Contract: 
-                <span *ngIf="employee?.contractType">{{employee.contractType}}</span>
-                <span *ngIf="employee?.contractEndDate" class="ms-2">
-                  <span class="badge" [ngClass]="{'bg-danger': getDaysUntilDate(employee.contractEndDate) <= 0, 'bg-warning': getDaysUntilDate(employee.contractEndDate) <= 30 && getDaysUntilDate(employee.contractEndDate) > 0, 'bg-success': getDaysUntilDate(employee.contractEndDate) > 30}">
-                    Ends {{employee.contractEndDate | date:'MMM dd'}}
+                <i class="fa fa-file-contract float-right"></i>
+                <span *ngIf="employee?.contractType">
+                  <strong>Employment Type:</strong> {{employee.contractType}}
+                </span>
+                <br *ngIf="employee?.contractType && employee?.contractStartDate && employee?.contractEndDate">
+                <span *ngIf="employee?.contractStartDate && employee?.contractEndDate">
+                  <span class="badge" [ngClass]="{'bg-danger': getDaysUntilDate(employee.contractEndDate) < 7, 'bg-warning': getDaysUntilDate(employee.contractEndDate) <= 30 && getDaysUntilDate(employee.contractEndDate) >= 7, 'bg-success': getDaysUntilDate(employee.contractEndDate) > 30}">
+                    Ends in {{employee.contractEndDate | date:'MM/dd/yyyy'}} 
+                    <span *ngIf="getContractYears(employee.contractStartDate, employee.contractEndDate) > 0">
+                      ({{getContractYears(employee.contractStartDate, employee.contractEndDate)}} years)
+                    </span>
+                    <span *ngIf="getContractYears(employee.contractStartDate, employee.contractEndDate) === 0">
+                      ({{getRemainingTimeDetailed(employee.contractEndDate)}})
+                    </span>
                   </span>
                 </span>
               </li>
@@ -224,7 +238,7 @@
        <div class="modal-body">
         <form #addForm="ngForm" (ngSubmit)="onAddEmployee(addForm.value); addForm.resetForm(); addEmployeeImageUrl = ''">
           <div class="form-group">
-             <label for="name">Name</label>
+             <label for="name">Full Name</label>
              <input type="text" ngModel name="name" class="form-control" id="name" placeholder="Name" required>
           </div>
           <div class="form-group">
@@ -232,11 +246,11 @@
              <input type="email" ngModel name="email" class="form-control" id="email" placeholder="Email" required>
           </div>
           <div class="form-group">
-             <label for="phone">Job title</label>
+             <label for="phone">Job Title</label>
              <input type="text" ngModel name="jobTitle" class="form-control" id="jobTile" placeholder="Job title" required>
           </div>
           <div class="form-group">
-             <label for="phone">Phone</label>
+             <label for="phone">Phone Number</label>
              <input type="text" ngModel name="phone" class="form-control" id="phone" placeholder="Phone" required>
           </div>
            <div class="form-group">
@@ -245,7 +259,7 @@
            </div>
            <div class="form-group">
              <label for="hireDate">Hire Date</label>
-             <input type="date" ngModel name="hireDate" class="form-control" id="hireDate">
+             <input type="date" ngModel name="hireDate" class="form-control" id="hireDate" min="1900-01-01" max="2100-12-31">
            </div>
            <div class="form-group">
              <label for="status">Status</label>
@@ -255,11 +269,10 @@
              </select>
            </div>
            <div class="form-group">
-             <label for="contractType">Contract Type</label>
+             <label for="contractType">Employment Type</label>
              <select ngModel name="contractType" (change)="onContractTypeChange($event)" class="form-control" id="contractType">
-               <option value="">-- Select Contract Type --</option>
-               <option value="Full-time">Full-time</option>
-               <option value="Part-time">Part-time</option>
+               <option value="Full-time">Full-Time</option>
+               <option value="Part-time">Part-Time</option>
                <option value="Contract">Contract</option>
                <option value="Internship">Internship</option>
                <option value="Temporary">Temporary</option>
@@ -267,20 +280,20 @@
            </div>
            <div class="form-group" *ngIf="selectedAddContractType">
              <label for="contractStartDate">Contract Start Date</label>
-             <input type="date" ngModel name="contractStartDate" class="form-control" id="contractStartDate">
+             <input type="date" ngModel name="contractStartDate" class="form-control" id="contractStartDate" min="1900-01-01" max="2100-12-31">
            </div>
            <div class="form-group" *ngIf="selectedAddContractType">
              <label for="contractEndDate">Contract End Date</label>
-             <input type="date" ngModel name="contractEndDate" class="form-control" id="contractEndDate">
+             <input type="date" ngModel name="contractEndDate" class="form-control" id="contractEndDate" min="1900-01-01" max="2100-12-31">
              <small class="form-text text-muted">Leave empty for permanent contracts</small>
            </div>
            <div class="form-group">
-             <label for="imageUrl">Image URL (or paste a link)</label>
+             <label for="imageUrl">Profile Image URL</label>
              <input type="text" [(ngModel)]="addEmployeeImageUrl" (input)="onImageUrlInputChange($event.target.value, 'add')" name="imageUrl" class="form-control" id="imageUrl" placeholder="Image URL">
              <small class="form-text text-muted">Or choose a local file below — the URL field will be populated automatically.</small>
            </div>
            <div class="form-group mt-2">
-             <label for="imageFile">Browse local image</label>
+             <label for="imageFile">Upload Profile Photo</label>
              <div class="d-flex align-items-center gap-2">
                <input type="file" accept="image/*" class="form-control" id="imageFile" (change)="onImageFileChange($event, 'add')">
                <!-- Preview selected image in Add modal -->
@@ -311,7 +324,7 @@
         <div class="modal-body">
             <form #editForm="ngForm" (ngSubmit)="onUpdateEmployee(editForm.value); editForm.resetForm()">
               <div class="form-group">
-                 <label for="name">Name</label>
+                 <label for="name">Full Name</label>
                 <input type="text" [(ngModel)]="editEmployee.name" name="name" class="form-control" id="name" aria-describedby="emailHelp" placeholder="Name">
               </div>
               <input type="hidden" [(ngModel)]="editEmployee.id" name="id" class="form-control" id="id" placeholder="Email">
@@ -321,21 +334,20 @@
                 <input type="email" [(ngModel)]="editEmployee.email" name="email" class="form-control" id="email" placeholder="Email">
               </div>
               <div class="form-group">
-                 <label for="phone">Job title</label>
+                 <label for="phone">Job Title</label>
                 <input type="text" [(ngModel)]="editEmployee.jobTitle" name="jobTitle" class="form-control" id="jobTitle" placeholder="Job title">
               </div>
               <div class="form-group">
-                 <label for="phone">Phone</label>
+                 <label for="phone">Phone Number</label>
                 <input type="text" [(ngModel)]="editEmployee.phone" name="phone" class="form-control" id="phone" placeholder="Phone">
               </div>
               <div class="form-group">
                  <label for="birthday">Birthday</label>
-                <input type="text" [(ngModel)]="editEmployee.birthday" name="birthday" class="form-control" id="birthday" placeholder="YYYY-MM-DD" pattern="\d{4}-\d{2}-\d{2}" maxlength="10">
-                <small class="form-text text-muted">Format: YYYY-MM-DD (e.g., 1990-01-15)</small>
+                <input type="date" [(ngModel)]="editEmployee.birthday" name="birthday" class="form-control" id="birthday" min="1900-01-01" max="2100-12-31">
               </div>
               <div class="form-group">
                  <label for="hireDate">Hire Date</label>
-                <input type="date" [(ngModel)]="editEmployee.hireDate" name="hireDate" class="form-control" id="hireDate">
+                <input type="date" [(ngModel)]="editEmployee.hireDate" name="hireDate" class="form-control" id="hireDate" min="1900-01-01" max="2100-12-31">
               </div>
               <div class="form-group">
                  <label for="status">Status</label>
@@ -345,11 +357,10 @@
                 </select>
               </div>
               <div class="form-group">
-                 <label for="contractType">Contract Type</label>
+                 <label for="contractType">Employment Type</label>
                 <select [(ngModel)]="editEmployee.contractType" name="contractType" class="form-control" id="contractType">
-                  <option value="">-- Select Contract Type --</option>
-                  <option value="Full-time">Full-time</option>
-                  <option value="Part-time">Part-time</option>
+                  <option value="Full-time">Full-Time</option>
+                  <option value="Part-time">Part-Time</option>
                   <option value="Contract">Contract</option>
                   <option value="Internship">Internship</option>
                   <option value="Temporary">Temporary</option>
@@ -357,11 +368,11 @@
               </div>
               <div class="form-group" *ngIf="editEmployee.contractType">
                  <label for="contractStartDate">Contract Start Date</label>
-                <input type="date" [(ngModel)]="editEmployee.contractStartDate" name="contractStartDate" class="form-control" id="contractStartDate">
+                <input type="date" [(ngModel)]="editEmployee.contractStartDate" name="contractStartDate" class="form-control" id="contractStartDate" min="1900-01-01" max="2100-12-31">
               </div>
               <div class="form-group" *ngIf="editEmployee.contractType">
                  <label for="contractEndDate">Contract End Date</label>
-                <input type="date" [(ngModel)]="editEmployee.contractEndDate" name="contractEndDate" class="form-control" id="contractEndDate">
+                <input type="date" [(ngModel)]="editEmployee.contractEndDate" name="contractEndDate" class="form-control" id="contractEndDate" min="1900-01-01" max="2100-12-31">
                 <small class="form-text text-muted">Leave empty for permanent contracts</small>
               </div>
               <div class="form-group">
@@ -369,7 +380,7 @@
                 <input type="text" [(ngModel)]="editEmployee.imageUrl" name="imageUrl" class="form-control" id="imageUrl" placeholder="Image URL">
               </div>
               <div class="form-group mt-2">
-                <label for="editImageFile">Browse local image (Edit)</label>
+                <label for="editImageFile">Edit Profile Photo</label>
                 <div class="d-flex align-items-center gap-2">
                   <input type="file" accept="image/*" class="form-control" id="editImageFile" (change)="onImageFileChange($event, 'edit')">
                   <img *ngIf="editEmployee.imageUrl" [src]="editEmployee.imageUrl" class="img-thumbnail mt-2 preview-default">

@@ -28,6 +28,7 @@ export class App {
   public addEmployeeImageUrl: string = '';
   public selectedAddContractType: string = '';
   private allEmployees: Employee[] = [];
+  public selectedEmployeeId: number | null = null;
 
   // New properties for sorting and statistics
   public sortBy: string = 'name';
@@ -382,6 +383,35 @@ export class App {
     return today.getFullYear() - hireDate.getFullYear();
   }
 
+  public getContractYears(startDateStr: string | undefined, endDateStr: string | undefined): number {
+    if (!startDateStr || !endDateStr) return 0;
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    return endDate.getFullYear() - startDate.getFullYear();
+  }
+
+  public getRemainingTimeDetailed(dateStr: string | undefined): string {
+    if (!dateStr) return '';
+    const now = new Date();
+    const endDate = new Date(dateStr);
+    const diffMs = endDate.getTime() - now.getTime();
+    
+    if (diffMs <= 0) return 'Expired';
+    
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffMonths = Math.floor(diffDays / 30); // Approximate
+    const remainingDays = diffDays % 30;
+    
+    if (diffMonths > 0) {
+      return `${diffMonths} months, ${remainingDays} days, ${diffHours} hours`;
+    } else if (remainingDays > 0) {
+      return `${remainingDays} days, ${diffHours} hours`;
+    } else {
+      return `${diffHours} hours`;
+    }
+  }
+
   public getDaysUntilDate(dateStr: string | undefined): number {
     if (!dateStr) return 999;
     const today = new Date();
@@ -419,5 +449,39 @@ export class App {
 
   public onExportToCSV(): void {
     this.employeeService.exportEmployeesToCSV(this.allEmployees);
+  }
+
+  private highlightTimeout: any;
+
+  public scrollToAndHighlightEmployee(employeeId: number | undefined): void {
+    if (!employeeId) return;
+
+    // Clear existing highlight timeout so we can restart animation now.
+    if (this.highlightTimeout) {
+      clearTimeout(this.highlightTimeout);
+      this.highlightTimeout = null;
+    }
+
+    const elementId = `employee-card-${employeeId}`;
+    const element = document.getElementById(elementId);
+
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Restart CSS animation by removing and re-adding the class.
+      element.classList.remove('highlight-blink');
+      void element.offsetWidth; // Force reflow
+      element.classList.add('highlight-blink');
+    }
+
+    this.selectedEmployeeId = employeeId;
+
+    this.highlightTimeout = setTimeout(() => {
+      this.selectedEmployeeId = null;
+      if (element) {
+        element.classList.remove('highlight-blink');
+      }
+      this.highlightTimeout = null;
+    }, 3000);
   }
 }

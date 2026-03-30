@@ -99,6 +99,31 @@
 	margin-top: 2rem;
 }
 
+/* Make warning/event names clickable */
+.clickable-employee-name {
+	cursor: pointer;
+	color: #000;
+	transition: color 0.2s ease;
+}
+
+.clickable-employee-name:hover {
+	color: #495057;
+}
+
+/* Highlight and blink animation for selected employee card */
+@keyframes blink {
+	0%, 100% {
+		background-color: rgba(13, 110, 253, 0.1);
+	}
+	50% {
+		background-color: rgba(13, 110, 253, 0.25);
+	}
+}
+
+.highlight-blink {
+	animation: blink 0.5s ease-in-out 6;
+}
+
 /* Header and nav link styling + hover */
 .navbar .navbar-brand {
 	font-weight: 700;
