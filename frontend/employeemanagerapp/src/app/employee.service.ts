@@ -50,11 +50,11 @@ export class EmployeeService {
       emp.jobTitle || '',
       emp.phone || '',
       emp.status || '',
-      emp.birthday || '',
-      emp.hireDate || '',
+      this.formatDateForCSV(emp.birthday),
+      this.formatDateForCSV(emp.hireDate),
       emp.contractType || '',
-      emp.contractStartDate || '',
-      emp.contractEndDate || ''
+      this.formatDateForCSV(emp.contractStartDate),
+      this.formatDateForCSV(emp.contractEndDate)
     ]);
 
     // Combine headers and rows
@@ -64,12 +64,16 @@ export class EmployeeService {
     ].join('\n');
 
     // Create blob and download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel compatibility
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     
+    // Create a more readable filename with current date
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS format
     link.setAttribute('href', url);
-    link.setAttribute('download', `employees_${new Date().getTime()}.csv`);
+    link.setAttribute('download', `employees_${dateStr}_${timeStr}.csv`);
     link.style.visibility = 'hidden';
     
     document.body.appendChild(link);
@@ -84,6 +88,24 @@ export class EmployeeService {
       return `"${value.replace(/"/g, '""')}"`;
     }
     return value;
+  }
+
+  private formatDateForCSV(dateString: string | undefined): string {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString; // Return original if invalid
+      
+      // Format as MM/DD/YYYY to match common CSV expectations
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${month}/${day}/${year}`;
+    } catch (error) {
+      return dateString; // Return original string if parsing fails
+    }
   }
 
   public onOpenModal(employee: Employee | null, mode: string): void {

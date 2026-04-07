@@ -118,7 +118,7 @@
       </div>
       <div class="row mt-3" *ngIf="upcomingContractEndings.length > 0">
         <div class="col-md-12">
-          <div class="card">
+          <div class="card contract-status-card">
             <div class="card-header" [ngClass]="getContractHeaderClass()">
               <h6 class="mb-0"><i class="fa fa-file-contract"></i> Contract Status</h6>
             </div>
@@ -255,11 +255,19 @@
           </div>
            <div class="form-group">
              <label for="birthday">Birthday</label>
-             <input type="date" ngModel name="birthday" class="form-control" id="birthday" min="1900-01-01" max="2100-12-31">
+             <div class="d-flex gap-2 align-items-center">
+               <input type="date" ngModel name="birthday" class="form-control" id="birthday" min="1900-01-01" max="2100-12-31" (wheel)="$event.preventDefault()">
+               <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFormDate(addForm, 'birthday')">Clear</button>
+               <button type="button" class="btn btn-sm btn-outline-primary" (click)="setFormDate(addForm, 'birthday', todayDateString())">Today</button>
+             </div>
            </div>
            <div class="form-group">
              <label for="hireDate">Hire Date</label>
-             <input type="date" ngModel name="hireDate" class="form-control" id="hireDate" min="1900-01-01" max="2100-12-31">
+             <div class="d-flex gap-2 align-items-center">
+               <input type="date" ngModel name="hireDate" class="form-control" id="hireDate" min="1900-01-01" max="2100-12-31" (wheel)="$event.preventDefault()">
+               <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFormDate(addForm, 'hireDate')">Clear</button>
+               <button type="button" class="btn btn-sm btn-outline-primary" (click)="setFormDate(addForm, 'hireDate', todayDateString())">Today</button>
+             </div>
            </div>
            <div class="form-group">
              <label for="status">Status</label>
@@ -280,11 +288,20 @@
            </div>
            <div class="form-group" *ngIf="selectedAddContractType">
              <label for="contractStartDate">Contract Start Date</label>
-             <input type="date" ngModel name="contractStartDate" class="form-control" id="contractStartDate" min="1900-01-01" max="2100-12-31">
+             <div class="d-flex gap-2 align-items-center">
+               <input type="date" ngModel name="contractStartDate" class="form-control" id="contractStartDate" min="1900-01-01" max="2100-12-31" (wheel)="$event.preventDefault()">
+               <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFormDate(addForm, 'contractStartDate')">Clear</button>
+               <button type="button" class="btn btn-sm btn-outline-primary" (click)="setFormDate(addForm, 'contractStartDate', todayDateString())">Today</button>
+             </div>
+
            </div>
            <div class="form-group" *ngIf="selectedAddContractType">
              <label for="contractEndDate">Contract End Date</label>
-             <input type="date" ngModel name="contractEndDate" class="form-control" id="contractEndDate" min="1900-01-01" max="2100-12-31">
+             <div class="d-flex gap-2 align-items-center">
+               <input type="date" ngModel name="contractEndDate" class="form-control" id="contractEndDate" min="1900-01-01" max="2100-12-31" (wheel)="$event.preventDefault()">
+               <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFormDate(addForm, 'contractEndDate')">Clear</button>
+               <button type="button" class="btn btn-sm btn-outline-primary" (click)="setFormDate(addForm, 'contractEndDate', todayDateString())">Today</button>
+             </div>
              <small class="form-text text-muted">Leave empty for permanent contracts</small>
            </div>
            <div class="form-group">
@@ -343,11 +360,19 @@
               </div>
               <div class="form-group">
                  <label for="birthday">Birthday</label>
-                <input type="date" [(ngModel)]="editEmployee.birthday" name="birthday" class="form-control" id="birthday" min="1900-01-01" max="2100-12-31">
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="date" [(ngModel)]="editEmployee.birthday" name="birthday" class="form-control" id="birthday" min="1900-01-01" max="2100-12-31" (wheel)="$event.preventDefault()">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearEditDate('birthday')">Clear</button>
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="setEditDateToday('birthday')">Today</button>
+                </div>
               </div>
               <div class="form-group">
                  <label for="hireDate">Hire Date</label>
-                <input type="date" [(ngModel)]="editEmployee.hireDate" name="hireDate" class="form-control" id="hireDate" min="1900-01-01" max="2100-12-31">
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="date" [(ngModel)]="editEmployee.hireDate" name="hireDate" class="form-control" id="hireDate" min="1900-01-01" max="2100-12-31" (wheel)="$event.preventDefault()">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearEditDate('hireDate')">Clear</button>
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="setEditDateToday('hireDate')">Today</button>
+                </div>
               </div>
               <div class="form-group">
                  <label for="status">Status</label>
@@ -368,11 +393,19 @@
               </div>
               <div class="form-group" *ngIf="editEmployee.contractType">
                  <label for="contractStartDate">Contract Start Date</label>
-                <input type="date" [(ngModel)]="editEmployee.contractStartDate" name="contractStartDate" class="form-control" id="contractStartDate" min="1900-01-01" max="2100-12-31">
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="date" [(ngModel)]="editEmployee.contractStartDate" name="contractStartDate" class="form-control" id="contractStartDate" min="1900-01-01" max="2100-12-31" (wheel)="$event.preventDefault()">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearEditDate('contractStartDate')">Clear</button>
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="setEditDateToday('contractStartDate')">Today</button>
+                </div>
               </div>
               <div class="form-group" *ngIf="editEmployee.contractType">
                  <label for="contractEndDate">Contract End Date</label>
-                <input type="date" [(ngModel)]="editEmployee.contractEndDate" name="contractEndDate" class="form-control" id="contractEndDate" min="1900-01-01" max="2100-12-31">
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="date" [(ngModel)]="editEmployee.contractEndDate" name="contractEndDate" class="form-control" id="contractEndDate" min="1900-01-01" max="2100-12-31" (wheel)="$event.preventDefault()">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearEditDate('contractEndDate')">Clear</button>
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="setEditDateToday('contractEndDate')">Today</button>
+                </div>
                 <small class="form-text text-muted">Leave empty for permanent contracts</small>
               </div>
               <div class="form-group">

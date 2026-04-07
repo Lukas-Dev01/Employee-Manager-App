@@ -1,10 +1,14 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Maven build output
+/target/
 
-### STS ###
+# IDE and editor files
+/.idea/
+*.iws
+*.iml
+*.ipr
+/.vscode/
+
+# Eclipse/STS
 .apt_generated
 .classpath
 .factorypath
@@ -13,21 +17,22 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+# OS files
+Thumbs.db
+.DS_Store
+
+# Environment and local config (prevent credential leaks)
+/.env
+application-local.properties
+application-local.yml
+
+# Logs
+*.log
+logs/

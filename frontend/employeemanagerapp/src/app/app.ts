@@ -109,6 +109,51 @@ export class App {
     button.click();
   }
 
+  // Calendars season date handling
+
+  public todayDateString(): string {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  public getSeason(dateString: string | undefined): string {
+    if (!dateString) return '';
+    const month = new Date(dateString).getMonth() + 1;
+    if (month === 12 || month <= 2) return 'Winter';
+    if (month <= 5) return 'Spring';
+    if (month <= 8) return 'Summer';
+    return 'Autumn';
+  }
+
+  public clearFormDate(form: any, fieldName: string): void {
+    if (form && form.controls && form.controls[fieldName]) {
+      form.controls[fieldName].setValue('');
+      form.controls[fieldName].markAsUntouched();
+      form.controls[fieldName].markAsPristine();
+    }
+  }
+
+  public setFormDate(form: any, fieldName: string, value: string): void {
+    if (form && form.controls && form.controls[fieldName]) {
+      form.controls[fieldName].setValue(value);
+    }
+  }
+
+  public clearEditDate(fieldName: keyof Employee): void {
+    if (this.editEmployee) {
+      (this.editEmployee as any)[fieldName] = '';
+    }
+  }
+
+  public setEditDateToday(fieldName: keyof Employee): void {
+    if (this.editEmployee) {
+      (this.editEmployee as any)[fieldName] = this.todayDateString();
+    }
+  }
+
   public onAddEmployee(employeeData: any): void {
     // Ensure the selected image preview is attached to the payload
     if (this.addEmployeeImageUrl) {
