@@ -1,7 +1,10 @@
 # Employee Manager App
 
 A full-stack Employee Management application built with Spring Boot and Angular.  
-The app allows users to manage employee records through a REST API and a responsive frontend interface.
+Manages employee records using a REST API, MySQL database, and a responsive frontend.
+
+![App Preview](./preview.png)
+> This project is intended to be run locally for demonstration purposes.
 
 ## Features
 
@@ -32,14 +35,23 @@ The app allows users to manage employee records through a REST API and a respons
 - CSS
 - Bootstrap / Font Awesome
 
+## Key Concepts
+
+- REST API design
+- CRUD operations
+- Frontend-backend integration
+- MySQL database handling
+- Component-based Angular architecture
+
 ## Project Structure
 
 ```text
-employee-manager-app/
+Employee-Manager-App/
 ├── backend/
 │   └── employee-manager/       # Spring Boot REST API
 ├── frontend/
 │   └── employeemanagerapp/     # Angular frontend application
+├── preview.png
 └── README.md
 ```
 
@@ -55,7 +67,7 @@ Make sure you have installed:
 - Angular CLI
 - MySQL
 
-## Backend Setup
+### Backend Setup
 
 Navigate to the backend project:
 
@@ -81,7 +93,7 @@ The backend runs on:
 http://localhost:8080
 ```
 
-## Frontend Setup
+### Frontend Setup
 
 Navigate to the frontend project:
 
