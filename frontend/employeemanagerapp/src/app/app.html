@@ -2,8 +2,10 @@
 <div id="main-container">
   <ng-container *ngIf="employees$ | async as employees; else loading">
   <!-- Header -->
-  <div *ngIf="employees.length === 0" class="container text-center mt-5">
-    <p>No employees found.</p>
+  <div *ngIf="employees.length === 0 && !isLoading" class="container text-center mt-5">
+    <i class="fa fa-search text-muted mb-3" style="font-size: 3rem;"></i>
+    <p class="text-muted">No employees found matching your search.</p>
+    <button class="btn btn-outline-secondary btn-sm" (click)="onSearch('')">Clear Search</button>
   </div>
 
   <ng-container *ngIf="employees.length > 0">
@@ -40,19 +42,22 @@
     </nav>
 
     <!-- Statistics Bar -->
-    <div class="bg-light p-3 border-bottom">
+    <div class="bg-light p-3 border-bottom" style="position: sticky; top: 56px; z-index: 999;">
       <div class="container">
         <div class="row text-center">
           <div class="col-md-3">
-            <h5 class="text-primary">{{statistics.total}}</h5>
+            <i class="fa fa-users text-primary mb-2" style="font-size: 1.5rem;"></i>
+            <h5 class="text-primary mb-1">{{statistics.total}}</h5>
             <small class="text-muted">Total Employees</small>
           </div>
           <div class="col-md-3">
-            <h5 class="text-success">{{statistics.active}}</h5>
+            <i class="fa fa-check-circle text-success mb-2" style="font-size: 1.5rem;"></i>
+            <h5 class="text-success mb-1">{{statistics.active}}</h5>
             <small class="text-muted">Active ({{statistics.activePercentage}}%)</small>
           </div>
           <div class="col-md-3">
-            <h5 class="text-warning">{{statistics.inactive}}</h5>
+            <i class="fa fa-pause-circle text-warning mb-2" style="font-size: 1.5rem;"></i>
+            <h5 class="text-warning mb-1">{{statistics.inactive}}</h5>
             <small class="text-muted">Inactive</small>
           </div>
           <div class="col-md-3">
@@ -75,8 +80,8 @@
     <!-- Upcoming Events -->
     <div class="container mt-3" *ngIf="upcomingBirthdays.length > 0 || upcomingAnniversaries.length > 0 || upcomingContractEndings.length > 0">
       <div class="row">
-        <div class="col-md-6" *ngIf="upcomingBirthdays.length > 0">
-          <div class="card">
+        <div class="col-md-12" *ngIf="upcomingBirthdays.length > 0">
+          <div class="card contract-status-card">
             <div class="card-header bg-info text-white">
               <h6 class="mb-0"><i class="fa fa-birthday-cake"></i> Upcoming Birthdays</h6>
             </div>
@@ -95,8 +100,8 @@
             </div>
           </div>
         </div>
-        <div class="col-md-6" *ngIf="upcomingAnniversaries.length > 0">
-          <div class="card">
+        <div class="col-md-12" *ngIf="upcomingAnniversaries.length > 0">
+          <div class="card contract-status-card">
             <div class="card-header bg-success text-white">
               <h6 class="mb-0"><i class="fa fa-calendar"></i> Upcoming Anniversaries</h6>
             </div>
@@ -148,9 +153,9 @@
     </div>
 
     <!-- Employee Cards -->
-    <div class="container">
+    <div class="container mt-4">
       <div class="row">
-        <div *ngFor="let employee of employees" class="col-md-6 col-xl-4">
+        <div *ngFor="let employee of employees" class="col-md-6 col-xl-4 employee-card-wrapper">
           <div class="card m-b-30" [id]="'employee-card-' + employee.id" [ngClass]="{'highlight-blink': selectedEmployeeId === employee.id}">
             <div class="card-body row">
               <div class="col-6">
@@ -207,6 +212,8 @@
   </ng-container>
   </ng-container>
 </div>
+
+
 
 
 <!-- Useful? -->
@@ -449,10 +456,18 @@
 </div>
 
 <ng-template #loading>
-  <div class="container text-center mt-5">
-    <p>Loading employees...</p>
+  <div class="container text-center mt-5 loading-overlay">
+    <div class="text-center">
+      <i class="fa fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+      <p class="text-muted">Loading employees...</p>
+    </div>
   </div>
 </ng-template>
+
+<!-- Scroll to top button -->
+<button *ngIf="showScrollButton" (click)="scrollToTop()" class="btn btn-primary scroll-to-top" title="Go to top">
+  <i class="fa fa-arrow-up"></i>
+</button>
 
 <!-- Image Preview Modal -->
 <div class="modal fade" id="imagePreviewModal" tabindex="-1" role="dialog" aria-labelledby="imagePreviewLabel" aria-hidden="true">

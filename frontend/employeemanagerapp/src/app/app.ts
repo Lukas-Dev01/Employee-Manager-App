@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -38,18 +38,42 @@ export class App {
   public upcomingAnniversaries: EmployeeWithAnniversary[] = [];
   public upcomingContractEndings: EmployeeWithContractWarning[] = [];
 
+  // Loading state
+  public isLoading: boolean = false;
+
+  // Scroll to top button
+  public showScrollButton: boolean = false;
+
   constructor(private employeeService: EmployeeService) {
     // Initialize the observable AFTER the service is injected
     this.employees$ = this.employeesSubject.asObservable();
+    this.loadEmployees();
+  }
+
+  private loadEmployees(): void {
+    this.isLoading = true;
     this.employeeService.getEmployees().subscribe({
       next: (res) => {
         this.allEmployees = res;
         this.updateStatistics();
         this.updateUpcomingEvents();
         this.applySorting();
+        this.isLoading = false;
       },
-      error: (err) => console.error(err)
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+      }
     });
+  }
+
+  @HostListener('window:scroll')
+  onScroll(): void {
+    this.showScrollButton = window.scrollY > 300;
+  }
+
+  public scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // Filter employees locally by name, email or job title
@@ -59,18 +83,23 @@ export class App {
       this.employeesSubject.next(this.allEmployees);
       return;
     }
-    const filtered = this.allEmployees.filter(e => {
-      const nameMatch = e.name && e.name.toLowerCase().includes(k);
-      const emailMatch = e.email && e.email.toLowerCase().includes(k);
-      const jobMatch = e.jobTitle && e.jobTitle.toLowerCase().includes(k);
-      return nameMatch || emailMatch || jobMatch;
-    }).sort((a, b) => {
-      // Prioritize name matches
-      const aNameStart = a.name?.toLowerCase().startsWith(k);
-      const bNameStart = b.name?.toLowerCase().startsWith(k);
-      return (bNameStart ? 1 : 0) - (aNameStart ? 1 : 0);
-    });
-    this.employeesSubject.next(filtered);
+    // Show loading briefly for search
+    this.isLoading = true;
+    setTimeout(() => {
+      const filtered = this.allEmployees.filter(e => {
+        const nameMatch = e.name && e.name.toLowerCase().includes(k);
+        const emailMatch = e.email && e.email.toLowerCase().includes(k);
+        const jobMatch = e.jobTitle && e.jobTitle.toLowerCase().includes(k);
+        return nameMatch || emailMatch || jobMatch;
+      }).sort((a, b) => {
+        // Prioritize name matches
+        const aNameStart = a.name?.toLowerCase().startsWith(k);
+        const bNameStart = b.name?.toLowerCase().startsWith(k);
+        return (bNameStart ? 1 : 0) - (aNameStart ? 1 : 0);
+      });
+      this.employeesSubject.next(filtered);
+      this.isLoading = false;
+    }, 300);
   }
 
   public onOpenModal(employee: Employee | null, mode: string): void {
@@ -268,8 +297,8 @@ export class App {
     reader.readAsDataURL(file);
   }
 
-  // Called when the user types/pastes an Image URL into the input.
-  // Keeps the preview in sync for both add and edit forms.
+  // Called when the user types/pastes an Image URL into the input
+  // Keeps the preview in sync for both add and edit forms
   public onImageUrlInputChange(value: string, formType: 'add' | 'edit'): void {
     if (formType === 'add') {
       this.addEmployeeImageUrl = value;
