@@ -157,3 +157,7 @@ http://localhost:8080/employee
 ## Purpose
 
 This project demonstrates a practical full-stack CRUD application using a Spring Boot REST API, MySQL database, and Angular frontend. It focuses on clean project structure, frontend-backend communication, and real-world employee management functionality.
+
+## License
+
+This project is provided for educational and portfolio demonstration purposes.
