@@ -1,6 +1,6 @@
 # Employee Manager App
 
-A full-stack Employee Management application built with Spring Boot and Angular.  
+A Employee Management application built with Spring Boot and Angular.  
 Manages employee records using a REST API, MySQL database, and a responsive frontend.
 
 ![App Preview](./preview.png)
